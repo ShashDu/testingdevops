@@ -1,0 +1,35 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Git Checkout') {
+            steps {
+                script {
+                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/ShashDu/testingdevops.git']])
+                }
+            }
+        }
+        stage('Node JS Build') {
+            steps{
+                sh 'npm install'
+            }
+        }
+        stage('Build NodeJS Docker Image') {
+            steps{
+                script{
+                     withcredentials 
+                        sh 'docker login -u <username> -p <password>' 
+                }
+            }
+        }
+        stage('Build NodeJS App to Kubernetes') {
+            steps{
+                script{
+                    sh 'aws eks update-kubeconfig --name <Name> --region ap-south-1'
+                    sh 'kubectl get ns'
+                    sh 'kubectl apply -f kube1.yaml'
+                }
+            }
+        }
+    }
+}
